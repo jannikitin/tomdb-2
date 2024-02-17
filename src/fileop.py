@@ -13,22 +13,22 @@ class JsonOperator:
     This module provides access to all json-configs and help to retrieve usefull data from them
     """
 
-    JSON_TABLE_FORM = {'uid': str,
-                       'name': str,
-                       'columns': List[Dict[str, Any]],
-                       'schema': str,
-                       'cfg_path': str,
-                       'bin_path': str}
-    COLUMNS_FORM = {'name': str, 'type': str, 'precision': int, 'scale': int}
-    NEW_JSON_SCHEMA_FORM = {'uid': str, 'name': str, 'tables': []}
-    JSON_TABLES_IN_SCHEMA_FORM = {'table_uid': str, 'table_name': str, 'cfg_path': str, 'bin_path': str}
-    JSON_CONNECTION_SETUP_FORM = {'current_available_uid': str,
-                                  '__version__': str}
+    JSON_TABLE_FORM: Dict[Any, Any] = {'uid': str,
+                                       'name': str,
+                                       'columns': List[Dict[str, Any]],
+                                       'schema': str,
+                                       'cfg_path': str,
+                                       'bin_path': str}
+    COLUMNS_FORM: Dict[Any, Any] = {'name': str, 'type': str, 'precision': int, 'scale': int}
+    NEW_JSON_SCHEMA_FORM: Dict[Any, Any] = {'uid': str, 'name': str, 'tables': []}
+    JSON_TABLES_IN_SCHEMA_FORM: Dict[Any, Any] = {'table_uid': str, 'table_name': str, 'cfg_path': str, 'bin_path': str}
+    JSON_CONNECTION_SETUP_FORM: Dict[Any, Any] = {'current_available_uid': str,
+                                                  '__version__': str}
     CURRENT_CONFIG = '../bin/tsk/config.json'
     UID_LENGTH = 5
 
     @classmethod
-    def get_json(cls, path: str):
+    def get_json(cls, path: str) -> Dict:
         try:
             with open(path, 'r') as f:
                 json_obj = json.load(f)
@@ -94,7 +94,7 @@ class JsonOperator:
         cls.write_json(schema_path, schema_cfg)
 
     @classmethod
-    def generate_connection_json_setup_config(cls, version: str, uid_pos = '00001'):
+    def generate_connection_json_setup_config(cls, version: str, uid_pos='00001'):
         json_temp = cls.JSON_CONNECTION_SETUP_FORM.copy()
         json_temp['current_available_uid'] = uid_pos
         json_temp['__version__'] = version
@@ -109,3 +109,12 @@ class JsonOperator:
         new_uid = '0' * (cls.UID_LENGTH - len(str(int(uid)))) + str(int(uid) + 1)
         cls.generate_connection_json_setup_config(uid_pos=new_uid, version=cfg['__version__'])
         return uid
+
+    @classmethod
+    def delete_table(cls, schema: str, table_name: str):
+        cfg_path = f'../bin/tsk/{schema}/config.json'
+        cfg = cls.get_json(cfg_path)
+        for i, table in enumerate(cfg['tables']):
+            if table['table_name'] == table_name:
+                del (cfg['tables'][i])
+        cls.write_json(cfg_path, cfg)

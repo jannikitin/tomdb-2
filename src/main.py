@@ -6,9 +6,10 @@ import core
 import dtypes
 import numpy as np
 import time
+from console import SCHEMA
 
 
-def generate_test_table(table_name='name', i = 1000, schema = 'tsk-default', valideta=False):
+def generate_test_table(table_name='table-1', i=1000, schema=SCHEMA, valideta=False):
     chars = [str(2) for _ in range(i)]
     ints = [i for i in range(i)]
     var10 = [str(i) * 9 for i in range(i)]
@@ -22,13 +23,11 @@ def generate_test_table(table_name='name', i = 1000, schema = 'tsk-default', val
     data = [[x[i] for x in data] for i in range(i)]
     start = time.time()
     t = Table(data=data, schema=schema, uid=JsonOperator.generate_uid(),
-                 name=table_name, dtypes=dtypes1, columns=columns, validate=valideta)
+              name=table_name, dtypes=dtypes1, columns=columns, validate=valideta)
     end = time.time()
-    print(f'{valideta} tomdb-2 validation: {end-start}')
+    print(f'{valideta} tomdb-2 validation: {end - start}')
     return t
 
 
 if __name__ == "__main__":
-    N = 10000
-    table1 = generate_test_table(i=N, valideta=True)
-    table2 = generate_test_table(i=N, valideta=False)
+    pass

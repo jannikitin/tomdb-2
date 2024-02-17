@@ -48,30 +48,30 @@ class Dtype(ABC):
             byte_size = self.get_precision()
         return byte_size
 
-
-def from_string(json_columns: Dict[Any, Any]) -> List[Dtype]:
-    res = []
-    for dt in json_columns:
-        match dt['type']:
-            case 'Smallint':
-                res.append(Smallint())
-            case 'Integer':
-                res.append(Integer())
-            case 'Numeric':
-                precision = dt['precision']
-                scale = dt['scale']
-                res.append(Numeric(precision, scale))
-            case 'Varchar':
-                precision = dt['precision']
-                res.append(Varchar(precision))
-            case 'Char':
-                precision = dt['precision']
-                res.append(Char(precision))
-            case 'Integer[]':
-                res.append(IntegerArray())
-            case _:
-                raise Exception
-    return res
+    @classmethod
+    def from_string(cls, json_columns: List[Dict[Any, Any]]) -> List:
+        res = []
+        for dt in json_columns:
+            match dt['type']:
+                case 'Smallint':
+                    res.append(Smallint())
+                case 'Integer':
+                    res.append(Integer())
+                case 'Numeric':
+                    precision = dt['precision']
+                    scale = dt['scale']
+                    res.append(Numeric(precision, scale))
+                case 'Varchar':
+                    precision = dt['precision']
+                    res.append(Varchar(precision))
+                case 'Char':
+                    precision = dt['precision']
+                    res.append(Char(precision))
+                case 'Integer[]':
+                    res.append(IntegerArray())
+                case _:
+                    raise Exception
+        return res
 
 
 class Integer(Dtype):

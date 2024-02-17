@@ -6,12 +6,12 @@ This module performs basic IO operations, files with .tdb extension reading and 
 import io
 from pathlib import Path
 import os
-from typing import List, Any
+from typing import List, Any, Dict
 
 from table import Table
 from console import CONNECTION
 from fileop import JsonOperator
-from dtypes import Dtype, from_string
+from dtypes import Dtype
 from exceptions import ObjectNotFound
 
 
@@ -63,9 +63,9 @@ def add_table_to_schema(table: Table) -> None:
     # Create directory for new table in schema folder
     if not os.path.exists(destination_path):
         Path(destination_path).mkdir()
-    with open(file=table_bin_path, mode='wb') as f:  # Retrieve data from table row by row -
-        dtypes = table.dtypes.values()  # - and serialize it with corresponding data type
-        for row in table.data:
+    with open(file=table_bin_path, mode='wb') as f:  # Retrieve data from table row by row
+        dtypes = list(table.dtypes.values())  # and serialize it with corresponding data type
+        for row in table:
             row = IBin.serialize(row, dtypes)
             f.write(row)
     JsonOperator.generate_table_json_config(table_config_path, table_bin_path, table)
@@ -81,20 +81,28 @@ def read_table(schema: str, table: str):
         raise e
     # Understand JSON-configure path from table path
     json_path = os.path.dirname(path) + '/' + os.path.basename(path)[0:-4] + '.json'
+    json_obj = JsonOperator.get_json(json_path)
+    columns, pure_dtypes, dtypes = parse_table_attrs(json_obj['columns'])
+    data = []
+    # Deserialize data sequentialy row-by-row
     with open(path, 'rb') as f:  # read table to buffer
         buffer = io.BytesIO(f.read())
-    json_obj = JsonOperator.get_json(json_path)
-    data = []
-    columns = [col['name'] for col in (col for col in json_obj['columns'])]
-    pure_dtypes = from_string(json_obj['columns'])
-    dtypes = {col: dtype for col, dtype in zip(columns, pure_dtypes)}
-    # Deserialize data sequentialy row-by-row
     while buffer.tell() < len(buffer.getvalue()):
         row = IBin.deserialize(buffer, pure_dtypes)
         data.append(row)
 
     return Table(data=data, schema=json_obj['schema'], uid=json_obj['uid'], name=json_obj['name'],
-                 dtypes=dtypes, columns=columns)
+                 dtypes=dtypes, columns=columns, validate=False)
+
+
+def parse_table_attrs(json_columns: List[Dict[Any, Any]]) -> tuple:
+    """
+    Retrieve columns and corresponding data types from json_columns list
+    """
+    cols = [col['name'] for col in (col for col in json_columns)]
+    pure_dtypes = Dtype.from_string(json_columns)
+    dtypes = {col: dtype for col, dtype in zip(cols, pure_dtypes)}
+    return cols, pure_dtypes, dtypes
 
 
 def find_table_in_json(schema: str, table: str) -> str:
@@ -108,3 +116,14 @@ def find_table_in_json(schema: str, table: str) -> str:
         if t['table_name'] == table:
             return t['bin_path']
     raise ObjectNotFound(f'Object {table} does not exist')
+
+
+def drop_table(schema: str, table: str):
+    try:
+        path = find_table_in_json(schema, table)
+    except ObjectNotFound as e:
+        return e
+    folder = os.path.dirname(path)
+    if os.name == 'posix':
+        os.system(f'rm -r {folder}')
+    JsonOperator.delete_table(schema, table)
