@@ -1,1 +1,0 @@
-{"uid": "0001", "name": "table-1", "columns": [{"name": "col1", "type": "Smallint", "precision": null, "scale": null}, {"name": "col2", "type": "Varchar", "precision": 10, "scale": null}, {"name": "col3", "type": "Numeric", "precision": 4, "scale": 2}], "schema": "tsk-default", "path": "../bin/tsk/tsk-default/table-1/0001.json"}

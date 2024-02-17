@@ -1,15 +1,34 @@
+import pandas as pd
+
 from table import Table
-from fileop import FileOperator
+from fileop import JsonOperator
 import core
 import dtypes
+import numpy as np
+import time
+
+
+def generate_test_table(table_name='name', i = 1000, schema = 'tsk-default', valideta=False):
+    chars = [str(2) for _ in range(i)]
+    ints = [i for i in range(i)]
+    var10 = [str(i) * 9 for i in range(i)]
+    floats = np.linspace(start=1, stop=100, num=i).tolist()
+    int_arrays = [[i for i in range(10)] for _ in range(i)]
+    data = [chars, ints, var10, floats, int_arrays]
+    columns = ['col1', 'col2', 'col3', 'col4', 'col5']
+    dtypes1 = {x: dtype for x, dtype in
+               zip(columns, [dtypes.Char(1), dtypes.Integer(),
+                             dtypes.Varchar(10), dtypes.Numeric(precision=4, scale=2), dtypes.IntegerArray()])}
+    data = [[x[i] for x in data] for i in range(i)]
+    start = time.time()
+    t = Table(data=data, schema=schema, uid=JsonOperator.generate_uid(),
+                 name=table_name, dtypes=dtypes1, columns=columns, validate=valideta)
+    end = time.time()
+    print(f'{valideta} tomdb-2 validation: {end-start}')
+    return t
+
 
 if __name__ == "__main__":
-    data = [[1, 'a', 2.22], [2, 'b', 3.456], [3, 'c', 56.01]]
-    columns = ['col1', 'col2', 'col3']
-    dtypes = {x: dtype for x, dtype in
-              zip(columns, [dtypes.Smallint(), dtypes.Varchar(10), dtypes.Numeric(precision=4, scale=2)])}
-    table = Table(data=data, schema='tsk-default', uid=FileOperator.generate_uid(),
-                  name='table-1', dtypes=dtypes, columns=columns)
-    core.add_table_to_schema(table)
-    table2 = core.read_table('/home/janni/projects/tomdb-2/tomdb-2/bin/tsk/tsk-default/table-1/0001.tdb')
-    print(table2.data)
+    N = 10000
+    table1 = generate_test_table(i=N, valideta=True)
+    table2 = generate_test_table(i=N, valideta=False)
