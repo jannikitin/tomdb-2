@@ -80,6 +80,22 @@ class Table:
     def shape(self) -> tuple:
         return len(self.columns), len(self.data[0])
 
+    @property
+    def bin_path(self):
+        return f'../bin/tsk/{self.schema}/{self.name}/{self.uid}.bin'
+
+    @property
+    def log_path(self):
+        return f'../bin/tsk/{self.schema}/{self.name}/{self.uid}.log'
+
+    @property
+    def json_cfg_path(self):
+        return f'../bin/tsk/{self.schema}/{self.name}/{self.uid}.json'
+
+    @property
+    def folder_path(self):
+        return f'../bin/tsk/{self.schema}/{self.name}/'
+
     def print(self, j=5) -> None:
         j = self.shape[1] if j > self.shape[1] else j
         headers = self.columns

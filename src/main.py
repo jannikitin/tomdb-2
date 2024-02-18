@@ -1,5 +1,3 @@
-import pandas as pd
-
 from table import Table
 from fileop import JsonOperator
 import core
